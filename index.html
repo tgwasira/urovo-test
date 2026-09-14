@@ -1,0 +1,35 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>K329 Bluetooth Test</title>
+</head>
+<body>
+  <button id="connect">Find K329</button>
+  <pre id="output"></pre>
+
+  <script>
+    const output = document.getElementById("output");
+
+    document.getElementById("connect").addEventListener("click", async () => {
+      output.textContent = "Searching...";
+
+      try {
+        const device = await navigator.bluetooth.requestDevice({
+          acceptAllDevices: true
+        });
+
+        output.textContent =
+          `Found device:\n\n` +
+          `Name: ${device.name}\n` +
+          `ID: ${device.id}`;
+
+      } catch (error) {
+        output.textContent =
+          `${error.name}: ${error.message}`;
+      }
+    });
+  </script>
+</body>
+</html>
