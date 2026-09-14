@@ -3,84 +3,63 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>K329 BLE Test</title>
-</head>
-<body>
-  <button id="connect">Connect to K329</button>
-  <pre id="output"></pre>
 
-  <script>
-    const output = document.getElementById("output");
+  <title>K329 Print Test</title>
 
-    function log(...args) {
-      output.textContent += args.join(" ") + "\n";
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
     }
 
-    document.getElementById("connect").addEventListener("click", async () => {
-      output.textContent = "";
+    .label {
+      width: 50mm;
+      height: 30mm;
+      border: 1px solid #ccc;
+      padding: 3mm;
+      box-sizing: border-box;
+    }
 
-      try {
-        log("Opening Bluetooth picker...");
+    .title {
+      font-size: 18px;
+      font-weight: bold;
+    }
 
-        const device = await navigator.bluetooth.requestDevice({
-          acceptAllDevices: true,
-          optionalServices: [
-            // We don't know the K329 UUIDs yet.
-            // We'll discover what Chrome allows us to access.
-          ]
-        });
-
-        log("Device:", device.name);
-        log("ID:", device.id);
-
-        log("Connecting to GATT...");
-        const server = await device.gatt.connect();
-
-        log("Connected:", server.connected);
-        log("");
-        log("Getting services...");
-
-        const services = await server.getPrimaryServices();
-
-        log(`Found ${services.length} services`);
-        log("");
-
-        for (const service of services) {
-          log("SERVICE:", service.uuid);
-
-          try {
-            const characteristics =
-              await service.getCharacteristics();
-
-            for (const c of characteristics) {
-              const p = c.properties;
-
-              log(
-                "  CHARACTERISTIC:",
-                c.uuid,
-                [
-                  p.read ? "read" : "",
-                  p.write ? "write" : "",
-                  p.writeWithoutResponse
-                    ? "writeWithoutResponse"
-                    : "",
-                  p.notify ? "notify" : "",
-                  p.indicate ? "indicate" : ""
-                ].filter(Boolean).join(", ")
-              );
-            }
-          } catch (e) {
-            log("  Could not enumerate characteristics:", e.message);
-          }
-
-          log("");
-        }
-
-      } catch (error) {
-        log("");
-        log(error.name + ": " + error.message);
+    @media print {
+      body {
+        margin: 0;
+        padding: 0;
       }
-    });
-  </script>
+
+      button {
+        display: none;
+      }
+
+      .label {
+        border: none;
+      }
+
+      @page {
+        size: 50mm 30mm;
+        margin: 0;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <button onclick="window.print()">
+    Print K329 Test
+  </button>
+
+  <br><br>
+
+  <div class="label">
+    <div class="title">HELLO K329</div>
+    <div>Printed from Chrome</div>
+    <div>123456789</div>
+  </div>
+
 </body>
 </html>
