@@ -1,41 +1,88 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>K329 Print Test</title>
+  <meta charset="utf-8">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
+  <title>K329 Print Speed Test</title>
 
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       font-family: Arial, sans-serif;
+      margin: 0;
       padding: 20px;
     }
 
-    .controls {
-      margin-bottom: 20px;
+    h2 {
+      margin-top: 0;
     }
 
-    .label {
+    .controls {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 30px;
+    }
+
+    button {
+      font-size: 18px;
+      padding: 14px;
+      cursor: pointer;
+    }
+
+    .info {
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+
+    /*
+     * Default label preview.
+     * JavaScript changes these dimensions before printing.
+     */
+    #label {
       width: 50mm;
       height: 30mm;
-      box-sizing: border-box;
-      padding: 2mm;
-      border: 1px solid #bbb;
+
+      padding: 1mm;
+
+      border: 1px solid #999;
+
       background: white;
       color: black;
+
+      overflow: hidden;
     }
 
     .title {
-      font-size: 18px;
+      font-size: 12px;
       font-weight: bold;
     }
 
-    .small {
-      font-size: 12px;
-      margin-top: 2mm;
+    .text {
+      font-size: 10px;
+      margin-top: 1mm;
     }
 
+
+    /* -----------------------
+       PRINT SETTINGS
+       ----------------------- */
+
     @media print {
+
+      /*
+       * Default print size.
+       *
+       * JavaScript dynamically inserts another @page rule
+       * when you select a different label size.
+       */
       @page {
         size: 50mm 30mm;
         margin: 0;
@@ -43,61 +90,172 @@
 
       html,
       body {
-        width: 50mm;
-        height: 30mm;
-        margin: 0;
-        padding: 0;
+        margin: 0 !important;
+        padding: 0 !important;
+
+        width: auto;
+        height: auto;
+
+        background: white;
       }
 
+      /*
+       * Hide everything.
+       */
       body * {
         visibility: hidden;
       }
 
-      .label,
-      .label * {
+      /*
+       * Only show the label.
+       */
+      #label,
+      #label * {
         visibility: visible;
       }
 
-      .label {
+      #label {
         position: absolute;
+
         left: 0;
         top: 0;
-        width: 50mm;
-        height: 30mm;
+
         margin: 0;
-        padding: 2mm;
+        padding: 1mm;
+
         border: none;
+
+        background: white;
+        color: black;
       }
     }
   </style>
+
+  <!--
+    JavaScript will modify this style when changing
+    the print page size.
+  -->
+  <style id="dynamic-page-style">
+    @page {
+      size: 50mm 30mm;
+      margin: 0;
+    }
+  </style>
+
 </head>
 
+
 <body>
-  <div class="controls">
-    <button onclick="printLabel()">Print Test Label</button>
+
+  <h2>UROVO K329 Print Test</h2>
+
+  <div class="info">
+    Keep Android paper size set to <b>58 mm</b>.<br>
+    Then compare how quickly each test starts printing.
   </div>
 
-  <div class="label">
-    <div class="title">ABC123</div>
-    <div>John Smith</div>
-    <div class="small">K329 TEST</div>
+
+  <div class="controls">
+
+    <button onclick="printLabel(50, 30)">
+      Print 50 × 30 mm
+    </button>
+
+    <button onclick="printLabel(40, 20)">
+      Print 40 × 20 mm
+    </button>
+
+    <button onclick="printLabel(25, 15)">
+      Print 25 × 15 mm
+    </button>
+
   </div>
+
+
+  <div id="label">
+
+    <div class="title">
+      TEST 123
+    </div>
+
+    <div class="text">
+      K329
+    </div>
+
+  </div>
+
 
   <script>
-    function printLabel() {
-      const start = performance.now();
 
-      window.addEventListener(
-        "afterprint",
-        () => {
-          const elapsed = performance.now() - start;
-          console.log(`Print dialog cycle: ${elapsed.toFixed(0)} ms`);
-        },
-        { once: true }
-      );
+    function printLabel(width, height) {
 
-      window.print();
+      const label =
+        document.getElementById("label");
+
+      const pageStyle =
+        document.getElementById(
+          "dynamic-page-style"
+        );
+
+
+      /*
+       * Change the actual label dimensions.
+       */
+
+      label.style.width =
+        width + "mm";
+
+      label.style.height =
+        height + "mm";
+
+
+      /*
+       * Tell Chrome the requested print page size.
+       */
+
+      pageStyle.textContent = `
+        @page {
+          size: ${width}mm ${height}mm;
+          margin: 0;
+        }
+      `;
+
+
+      /*
+       * Change the content so we know which
+       * test actually printed.
+       */
+
+      label.innerHTML = `
+        <div class="title">
+          ${width} × ${height} mm
+        </div>
+
+        <div class="text">
+          K329 TEST
+        </div>
+      `;
+
+
+      /*
+       * Give Chrome one frame to apply the
+       * new page dimensions before opening
+       * the print dialog.
+       */
+
+      requestAnimationFrame(() => {
+
+        requestAnimationFrame(() => {
+
+          window.print();
+
+        });
+
+      });
+
     }
+
   </script>
+
 </body>
 </html>
