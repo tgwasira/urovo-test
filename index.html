@@ -1,23 +1,28 @@
 <!doctype html>
 <html>
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>K329 Print Test</title>
 
   <style>
     body {
-      font-family: sans-serif;
+      font-family: Arial, sans-serif;
       padding: 20px;
+    }
+
+    .controls {
+      margin-bottom: 20px;
     }
 
     .label {
       width: 50mm;
       height: 30mm;
-      border: 1px solid #ccc;
-      padding: 3mm;
       box-sizing: border-box;
+      padding: 2mm;
+      border: 1px solid #bbb;
+      background: white;
+      color: black;
     }
 
     .title {
@@ -25,41 +30,74 @@
       font-weight: bold;
     }
 
+    .small {
+      font-size: 12px;
+      margin-top: 2mm;
+    }
+
     @media print {
+      @page {
+        size: 50mm 30mm;
+        margin: 0;
+      }
+
+      html,
       body {
+        width: 50mm;
+        height: 30mm;
         margin: 0;
         padding: 0;
       }
 
-      button {
-        display: none;
+      body * {
+        visibility: hidden;
+      }
+
+      .label,
+      .label * {
+        visibility: visible;
       }
 
       .label {
-        border: none;
-      }
-
-      @page {
-        size: 50mm 30mm;
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 50mm;
+        height: 30mm;
         margin: 0;
+        padding: 2mm;
+        border: none;
       }
     }
   </style>
 </head>
 
 <body>
-
-  <button onclick="window.print()">
-    Print K329 Test
-  </button>
-
-  <br><br>
-
-  <div class="label">
-    <div class="title">HELLO K329</div>
-    <div>Printed from Chrome</div>
-    <div>123456789</div>
+  <div class="controls">
+    <button onclick="printLabel()">Print Test Label</button>
   </div>
 
+  <div class="label">
+    <div class="title">ABC123</div>
+    <div>John Smith</div>
+    <div class="small">K329 TEST</div>
+  </div>
+
+  <script>
+    function printLabel() {
+      const start = performance.now();
+
+      window.addEventListener(
+        "afterprint",
+        () => {
+          const elapsed = performance.now() - start;
+          console.log(`Print dialog cycle: ${elapsed.toFixed(0)} ms`);
+        },
+        { once: true }
+      );
+
+      window.print();
+    }
+  </script>
 </body>
 </html>
