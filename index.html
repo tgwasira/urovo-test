@@ -3,31 +3,82 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>K329 Bluetooth Test</title>
+  <title>K329 BLE Test</title>
 </head>
 <body>
-  <button id="connect">Find K329</button>
+  <button id="connect">Connect to K329</button>
   <pre id="output"></pre>
 
   <script>
     const output = document.getElementById("output");
 
+    function log(...args) {
+      output.textContent += args.join(" ") + "\n";
+    }
+
     document.getElementById("connect").addEventListener("click", async () => {
-      output.textContent = "Searching...";
+      output.textContent = "";
 
       try {
+        log("Opening Bluetooth picker...");
+
         const device = await navigator.bluetooth.requestDevice({
-          acceptAllDevices: true
+          acceptAllDevices: true,
+          optionalServices: [
+            // We don't know the K329 UUIDs yet.
+            // We'll discover what Chrome allows us to access.
+          ]
         });
 
-        output.textContent =
-          `Found device:\n\n` +
-          `Name: ${device.name}\n` +
-          `ID: ${device.id}`;
+        log("Device:", device.name);
+        log("ID:", device.id);
+
+        log("Connecting to GATT...");
+        const server = await device.gatt.connect();
+
+        log("Connected:", server.connected);
+        log("");
+        log("Getting services...");
+
+        const services = await server.getPrimaryServices();
+
+        log(`Found ${services.length} services`);
+        log("");
+
+        for (const service of services) {
+          log("SERVICE:", service.uuid);
+
+          try {
+            const characteristics =
+              await service.getCharacteristics();
+
+            for (const c of characteristics) {
+              const p = c.properties;
+
+              log(
+                "  CHARACTERISTIC:",
+                c.uuid,
+                [
+                  p.read ? "read" : "",
+                  p.write ? "write" : "",
+                  p.writeWithoutResponse
+                    ? "writeWithoutResponse"
+                    : "",
+                  p.notify ? "notify" : "",
+                  p.indicate ? "indicate" : ""
+                ].filter(Boolean).join(", ")
+              );
+            }
+          } catch (e) {
+            log("  Could not enumerate characteristics:", e.message);
+          }
+
+          log("");
+        }
 
       } catch (error) {
-        output.textContent =
-          `${error.name}: ${error.message}`;
+        log("");
+        log(error.name + ": " + error.message);
       }
     });
   </script>
